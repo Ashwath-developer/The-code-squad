@@ -1,5 +1,6 @@
 import os
 import json
+from datetime import datetime, timezone
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -88,19 +89,40 @@ def users():
         name = request.form.get("name", "").strip()
         phone = request.form.get("phone", "").strip()
         email = request.form.get("email", "").strip()
+        address = request.form.get("address", "").strip()
+        digits = phone.replace(" ", "").replace("-", "")
+        if digits.startswith("00"):
+            normalized = "+" + digits[2:]
+        elif digits.startswith("+"):
+            normalized = digits
+        elif len(digits) == 10:
+            normalized = "+91" + digits
+        else:
+            normalized = "+" + digits
         try:
             latitude = float(request.form.get("latitude") or 0)
             longitude = float(request.form.get("longitude") or 0)
+            if not (-90 <= latitude <= 90 and -180 <= longitude <= 180):
+                raise ValueError
         except ValueError:
             latitude = longitude = None
         consent = 1 if request.form.get("consent") == "on" else 0
         if not name or not phone:
             flash("Name and phone are required.", "danger")
+        elif not normalized.startswith("+") or len(normalized) < 9:
+            flash("Enter a valid international phone number, such as +919876543210.", "danger")
+        elif not consent:
+            flash("SMS consent is required before registering the recipient.", "danger")
         else:
             with db.connection() as conn:
-                conn.execute("INSERT INTO registered_users(name,phone,email,latitude,longitude,consent_sms,invalid_location) VALUES(?,?,?,?,?,?,?)",
-                             (name, phone, email, latitude, longitude, consent, int(latitude is None or longitude is None)))
-            flash("Registered person added.", "success")
+                duplicate = conn.execute("SELECT id FROM registered_users WHERE phone_normalized=?", (normalized,)).fetchone()
+                if duplicate:
+                    flash("This phone number is already registered.", "danger")
+                else:
+                    conn.execute("INSERT INTO registered_users(name,phone,phone_normalized,email,latitude,longitude,address,consent_sms,consent_recorded_at,active,invalid_location) VALUES(?,?,?,?,?,?,?,?,?,?,?)",
+                                 (name, normalized, normalized, email, latitude, longitude, address, consent, datetime.now(timezone.utc).isoformat(), 1, int(latitude is None or longitude is None)))
+                    conn.execute("INSERT INTO audit_logs(actor,action,entity_type,details) VALUES(?,?,?,?)", (session["admin_name"], "register_recipient", "registered_user", json.dumps({"name": name, "phone": normalized, "consent": True})))
+                    flash("Registered person and SMS consent recorded.", "success")
         return redirect(url_for("users"))
     with db.connection() as conn:
         people = [dict(r) for r in conn.execute("SELECT * FROM registered_users ORDER BY id DESC")]

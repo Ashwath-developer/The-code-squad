@@ -1,1 +1,95 @@
-{% extends 'base.html' %}{% block content %}<h2 class="page-title mb-4">Registered People</h2><div class="row g-4"><div class="col-lg-4"><div class="card-box"><h5>Add person</h5><form method="post"><input class="form-control mb-2" name="name" placeholder="Full name" required><input class="form-control mb-2" name="phone" placeholder="+91..." required><input class="form-control mb-2" name="email" type="email" placeholder="Email (optional)"><div class="row"><div class="col"><input class="form-control mb-2" name="latitude" type="number" step="any" placeholder="Latitude"></div><div class="col"><input class="form-control mb-2" name="longitude" type="number" step="any" placeholder="Longitude"></div></div><div class="form-check mb-3"><input class="form-check-input" type="checkbox" name="consent" id="consent" checked><label class="form-check-label" for="consent">SMS notification consent recorded</label></div><button class="btn emergency-btn w-100">Register Person</button></form></div></div><div class="col-lg-8"><div class="card-box"><div class="table-responsive"><table class="table"><thead><tr><th>Name</th><th>Phone</th><th>Location</th><th>Consent</th></tr></thead><tbody>{% for p in people %}<tr><td>{{ p.name }}</td><td>{{ p.phone }}</td><td>{{ p.latitude }}, {{ p.longitude }}</td><td>{{ 'Yes' if p.consent_sms else 'No' }}</td></tr>{% endfor %}</tbody></table></div></div></div></div>{% endblock %}
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="page-title mb-1">Registered People</h2>
+        <p class="text-muted mb-0">Consent-managed recipient database for emergency notifications</p>
+    </div>
+    <button class="btn emergency-btn" type="button" data-bs-toggle="collapse" data-bs-target="#registerPerson">+ Register Person</button>
+</div>
+<div class="collapse mb-4" id="registerPerson">
+    <div class="card-box">
+        <h5 class="mb-3">New registered recipient</h5>
+        <form method="post">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Full name</label>
+                    <input class="form-control" name="name" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Mobile number</label>
+                    <input class="form-control" name="phone" placeholder="+91 98765 43210" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Email</label>
+                    <input class="form-control" name="email" type="email">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Address</label>
+                    <input class="form-control" name="address" placeholder="Building, locality, city">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Latitude</label>
+                    <input class="form-control" name="latitude" type="number" step="any">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Longitude</label>
+                    <input class="form-control" name="longitude" type="number" step="any">
+                </div>
+                <div class="col-md-6 d-flex align-items-end">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="consent" id="consent" checked>
+                        <label class="form-check-label" for="consent">SMS emergency notification consent recorded</label>
+                    </div>
+                </div>
+            </div>
+            <button class="btn emergency-btn mt-3">Register and record consent</button>
+        </form>
+    </div>
+</div>
+<div class="card-box">
+    <div class="d-flex justify-content-between mb-3">
+        <h5 class="mb-0">Recipient directory</h5>
+        <input id="recipientSearch" class="form-control w-auto" placeholder="Search recipient" oninput="filterRecipients()">
+    </div>
+    <div class="table-responsive">
+        <table class="table align-middle" id="recipientTable">
+            <thead>
+                <tr>
+                    <th>Recipient</th>
+                    <th>Phone</th>
+                    <th>Address / Location</th>
+                    <th>Consent</th>
+                    <th>Registered</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in people %}
+                <tr>
+                    <td>
+                        <strong>{{ p.name }}</strong><br>
+                        <small class="text-muted">{{ p.email or 'No email' }}</small>
+                    </td>
+                    <td>{{ p.phone_normalized or p.phone }}</td>
+                    <td>{{ p.address or '' }}<br>
+                        <small class="text-muted">{% if p.latitude and p.longitude %}{{ p.latitude }}, {{ p.longitude }}{% else %}Location missing{% endif %}</small>
+                    </td>
+                    <td>{% if p.consent_sms %}<span class="badge text-bg-success">Consent on record</span>{% else %}<span class="badge text-bg-secondary">No consent</span>{% endif %}</td>
+                    <td>{{ p.created_at }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-muted">No registered recipients.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<script>
+    function filterRecipients() {
+        const q = document.getElementById('recipientSearch').value.toLowerCase();
+        document.querySelectorAll('#recipientTable tbody tr').forEach(r => r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none')
+    }
+</script>
+{% endblock %}

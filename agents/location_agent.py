@@ -17,10 +17,10 @@ class LocationIntelligenceAgent:
                 continue
             distance = haversine_meters(incident["latitude"], incident["longitude"], lat, lon)
             item = {**person, "distance_meters": round(distance, 1)}
-            if distance <= incident["radius_meters"] and person["consent_sms"]:
+            if distance <= incident["radius_meters"] and person["consent_sms"] and person.get("active", 1) == 1:
                 eligible.append(item)
             else:
-                item["reason"] = "outside_radius" if distance > incident["radius_meters"] else "consent_not_given"
+                item["reason"] = "outside_radius" if distance > incident["radius_meters"] else ("inactive_recipient" if person.get("active", 1) != 1 else "consent_not_given")
                 excluded.append(item)
 
         result = {"eligible": eligible, "excluded": excluded, "radius_meters": incident["radius_meters"],

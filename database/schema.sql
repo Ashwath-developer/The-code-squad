@@ -4,7 +4,8 @@ CREATE TABLE IF NOT EXISTS admin_users (
 );
 CREATE TABLE IF NOT EXISTS registered_users (
  id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, phone TEXT NOT NULL, email TEXT,
- latitude REAL, longitude REAL, consent_sms INTEGER NOT NULL DEFAULT 1,
+ latitude REAL, longitude REAL, address TEXT, consent_sms INTEGER NOT NULL DEFAULT 1,
+ consent_recorded_at TEXT, active INTEGER NOT NULL DEFAULT 1, phone_normalized TEXT,
  invalid_location INTEGER NOT NULL DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE IF NOT EXISTS fire_incidents (
