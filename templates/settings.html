@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2 class="page-title mb-4">System Settings</h2>
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="card-box">
+      <h5>SMS delivery configuration</h5>
+      <p class="text-muted">Production secrets are read only from environment variables and are never displayed or stored in the database.</p>
+      <table class="table"><tbody>
+        <tr><th>Delivery mode</th><td><span class="badge {% if twilio_ready %}text-bg-success{% else %}text-bg-secondary{% endif %}">{{ 'Twilio ready' if twilio_ready else 'Simulation / credentials incomplete' }}</span></td></tr>
+        <tr><th>Account SID</th><td>{{ 'Configured' if twilio_sid else 'Missing' }}</td></tr>
+        <tr><th>Auth token</th><td>{{ 'Configured' if twilio_token else 'Missing' }}</td></tr>
+        <tr><th>Sending number</th><td>{{ twilio_sender or 'Missing' }}</td></tr>
+        <tr><th>Maximum retries</th><td>{{ max_retries }}</td></tr>
+      </tbody></table>
+      <form method="post"><input type="hidden" name="action" value="retry_limit"><label class="form-label">Maximum notification retries</label><div class="input-group"><input class="form-control" name="max_retries" type="number" min="0" max="5" value="{{ max_retries }}"><button class="btn emergency-btn">Save</button></div></form>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card-box">
+      <h5>Production activation checklist</h5>
+      <div class="timeline-item">Create and fund a provider account</div>
+      <div class="timeline-item">Verify or register the sending number</div>
+      <div class="timeline-item">Configure credentials in <code>.env</code></div>
+      <div class="timeline-item">Record consent for every real recipient</div>
+      <div class="timeline-item">Test with an authorized phone</div>
+      <div class="timeline-item">Require admin approval before dispatch</div>
+      <p class="footer-note mt-3">This application cannot deliver real SMS until you supply valid provider credentials and a verified sender. It also cannot confirm handset delivery without provider status callbacks.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

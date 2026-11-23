@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-xl-7">
+    <div class="card-box">
+      <h2 class="page-title">Report Fire Emergency</h2>
+      <p class="text-muted">Search or click the map to set the incident location, then choose the notification area.</p>
+
+      <div class="input-group mb-2">
+        <input id="addressInput" class="form-control" value="The Oxford College of Engineering, Bengaluru" placeholder="Search an address">
+        <button id="searchAddress" type="button" class="btn btn-outline-danger">Locate</button>
+      </div>
+      <div id="incidentPickerMap" class="mb-3"></div>
+
+      <form method="post">
+        <div class="mb-3">
+          <label class="form-label">Incident title</label>
+          <input class="form-control" name="title" value="College Campus Fire Alert" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Description</label>
+          <textarea class="form-control" name="description" rows="3">Smoke and fire reported near the campus building.</textarea>
+        </div>
+        <div class="row mb-3">
+          <div class="col"><label class="form-label">Latitude</label><input id="latitudeInput" class="form-control" name="latitude" type="number" step="any" value="12.9716" required></div>
+          <div class="col"><label class="form-label">Longitude</label><input id="longitudeInput" class="form-control" name="longitude" type="number" step="any" value="77.5946" required></div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label class="form-label">Severity</label>
+            <select class="form-select" name="severity"><option>Low</option><option selected>High</option><option>Critical</option></select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Notification radius</label>
+            <select id="radiusSelect" class="form-select" name="radius">
+              <option value="500">500 metres</option><option value="1000" selected>1 kilometre</option>
+              <option value="2000">2 kilometres</option><option value="5000">5 kilometres</option><option value="custom">Custom radius</option>
+            </select>
+          </div>
+        </div>
+        <div id="customRadiusRow" class="mb-3 d-none">
+          <label class="form-label">Custom radius in metres: <strong id="customRadiusLabel">1500</strong></label>
+          <input id="customRadius" name="custom_radius" class="form-range" type="range" min="100" max="10000" step="100" value="1500">
+        </div>
+        <div class="row mb-4">
+          <div class="col-md-6"><label class="form-label">Dispatch mode</label><select class="form-select" name="sms_mode"><option value="simulation">Simulated SMS (safe demo)</option><option value="real">Real SMS gateway</option></select></div>
+          <div class="col-md-6 d-flex align-items-end"><div class="form-check mb-2"><input class="form-check-input" type="checkbox" name="real_sms_approved" id="approval"><label class="form-check-label" for="approval">I approve real SMS dispatch</label></div></div>
+        </div>
+        <button class="btn emergency-btn w-100">REPORT FIRE EMERGENCY</button>
+      </form>
+    </div>
+  </div>
+  <div class="col-xl-5">
+    <div class="card-box">
+      <h5>Area preview</h5>
+      <p id="areaSummary" class="text-muted">Radius: 1 kilometre</p>
+      <div class="timeline-item">Coordinator creates plan</div>
+      <div class="timeline-item">Incident agent validates location</div>
+      <div class="timeline-item">Location agent filters registered people</div>
+      <div class="timeline-item">Communication agent prepares alerts</div>
+      <div class="timeline-item">Monitoring agent retries failures</div>
+      <p class="footer-note mt-3">Real emergency contacts require explicit approval. Public emergency services are never contacted automatically.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const start=[12.9716,77.5946];
+const picker=L.map('incidentPickerMap').setView(start,14);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap contributors'}).addTo(picker);
+let marker=L.marker(start,{draggable:true}).addTo(picker);
+let radiusCircle=L.circle(start,{radius:1000,color:'#ef4444',fillColor:'#ef4444',fillOpacity:.16}).addTo(picker);
+const latInput=document.getElementById('latitudeInput');
+const lonInput=document.getElementById('longitudeInput');
+const radiusSelect=document.getElementById('radiusSelect');
+const customRow=document.getElementById('customRadiusRow');
+const customRadius=document.getElementById('customRadius');
+const customLabel=document.getElementById('customRadiusLabel');
+function activeRadius(){return radiusSelect.value==='custom'?parseInt(customRadius.value,10):parseInt(radiusSelect.value,10)}
+function updateArea(){const lat=parseFloat(latInput.value)||12.9716;const lon=parseFloat(lonInput.value)||77.5946;const radius=activeRadius();marker.setLatLng([lat,lon]);radiusCircle.setLatLng([lat,lon]).setRadius(radius);document.getElementById('areaSummary').textContent=`Radius: ${radius>=1000?(radius/1000).toFixed(radius%1000?'1':'0')+' kilometre(s)':radius+' metres'} · ${lat.toFixed(5)}, ${lon.toFixed(5)}`}
+function setLocation(lat,lon){latInput.value=Number(lat).toFixed(6);lonInput.value=Number(lon).toFixed(6);updateArea();picker.setView([lat,lon],15)}
+picker.on('click',e=>setLocation(e.latlng.lat,e.latlng.lng));
+marker.on('dragend',()=>{const p=marker.getLatLng();setLocation(p.lat,p.lng)});
+latInput.addEventListener('change',updateArea);lonInput.addEventListener('change',updateArea);
+radiusSelect.addEventListener('change',()=>{customRow.classList.toggle('d-none',radiusSelect.value!=='custom');updateArea()});
+customRadius.addEventListener('input',()=>{customLabel.textContent=customRadius.value;updateArea()});
+document.getElementById('searchAddress').addEventListener('click',async()=>{const address=document.getElementById('addressInput').value;const button=document.getElementById('searchAddress');button.disabled=true;button.textContent='Locating...';try{const response=await fetch('/api/geocode?address='+encodeURIComponent(address));const data=await response.json();if(data.status==='success'){setLocation(parseFloat(data.latitude),parseFloat(data.longitude));picker.setView([data.latitude,data.longitude],16)}else{alert(data.message||'Address could not be located')}}catch(error){alert('Geocoding unavailable: '+error.message)}finally{button.disabled=false;button.textContent='Locate'}});
+updateArea();
+</script>
+{% endblock %}

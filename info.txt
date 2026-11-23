@@ -1,0 +1,689 @@
+# PROJECT: QUICKFIRE AI
+## Autonomous Multi-Agent Fire Emergency Alert and Response Coordination System
+
+Act as a senior software architect, AI multi-agent engineer, Python developer, database engineer and UI/UX designer.
+
+I want you to develop a complete, functional, hackathon-ready software project named **QuickFire AI**.
+
+This project must strictly address the requirements in my uploaded hackathon problem statement titled "Multi-Agent Autonomy That Gets Real Work Done".
+
+Do not build just a normal CRUD website or a chatbot. Build a real multi-agent application in which multiple specialized AI agents collaborate, use external tools, make decisions, execute tasks independently, communicate with each other, monitor outcomes and produce meaningful results.
+
+The final application must be runnable on a Windows laptop without purchasing any hardware.
+
+---
+
+# 1. PROJECT OBJECTIVE
+
+Build an intelligent fire emergency notification and coordination platform.
+
+The system should allow an administrator to report a fire incident, specify its geographical location and choose an emergency notification radius.
+
+The application should then use multiple AI agents to:
+
+1. Validate and analyze the reported fire incident.
+2. Identify people within the affected geographical radius.
+3. Research relevant emergency information when required.
+4. Prepare emergency notification messages.
+5. Send or simulate SMS notifications.
+6. Monitor message delivery.
+7. Retry eligible failed notifications.
+8. Generate a final emergency response report.
+
+The application must have a complete working demonstration using sample data.
+
+# 2. TECHNOLOGY STACK
+
+Use the following technologies:
+
+Frontend:
+- HTML5
+- CSS3
+- JavaScript
+- Bootstrap 5
+- Leaflet.js
+- OpenStreetMap
+
+Backend:
+- Python 3
+- Flask
+- Flask REST APIs
+
+Database:
+- MySQL as the primary database.
+- SQLite as an optional simple local demonstration fallback.
+
+Multi-agent framework:
+- LangGraph or a similarly suitable Python agent orchestration framework.
+- Separate specialized agents with clearly defined responsibilities.
+- An AI coordinator to assign and monitor tasks.
+- Use an LLM API through environment variables for actual AI reasoning.
+- Provide a transparent deterministic fallback mode if an AI API key is unavailable.
+
+Background processing:
+- Use a separate background worker process.
+- Use a persistent job queue and database-backed task status.
+- Implement task monitoring, retries and error handling.
+- Use Celery and Redis if practical, or an equivalent persistent background-job architecture.
+
+Integrations:
+- Geocoding API.
+- OpenStreetMap.
+- External search API for live research.
+- SMS gateway API for real SMS.
+- Simulated SMS service for development and demonstration.
+
+Version control:
+- Git
+- GitHub
+
+# 3. MULTI-AGENT ARCHITECTURE
+
+Implement at least four specialized agents and one coordinating agent.
+
+AGENT 1: INCIDENT ANALYSIS AGENT
+
+Responsibilities:
+- Receive fire incident reports.
+- Validate latitude and longitude.
+- Check whether required incident information is missing.
+- Identify duplicate reports.
+- Classify severity using transparent rules and AI-assisted analysis.
+- Produce an incident assessment.
+- Flag uncertain reports for administrator verification.
+
+Output:
+- Incident ID.
+- Validation status.
+- Severity classification.
+- Incident summary.
+- Recommended next action.
+
+AGENT 2: LOCATION INTELLIGENCE AGENT
+
+Responsibilities:
+- Retrieve registered people's information from MySQL.
+- Read their latitude and longitude.
+- Calculate geographical distances using the Haversine formula.
+- Identify people inside the selected radius.
+- Exclude people outside the radius.
+- Identify missing or invalid location information.
+- Generate a geographical recipient report.
+- Display affected people on an interactive map.
+
+Output:
+- Eligible recipient list.
+- Excluded recipient list.
+- Distance of each person.
+- Selected geographical radius.
+- Map information.
+
+AGENT 3: EMERGENCY COMMUNICATION AGENT
+
+Responsibilities:
+- Receive the verified recipient list.
+- Generate clear emergency notification messages.
+- Use appropriate message templates.
+- Send SMS using an external SMS gateway when configured.
+- Use simulated SMS when real SMS credentials are unavailable.
+- Track message status.
+- Prevent duplicate notifications for the same incident and recipient.
+
+Output:
+- Generated message.
+- Recipient number.
+- Delivery status.
+- Provider response or simulation result.
+- Notification timestamp.
+
+AGENT 4: MONITORING AND RECOVERY AGENT
+
+Responsibilities:
+- Monitor notification jobs.
+- Check pending, successful and failed notifications.
+- Retry temporary failures with a maximum configurable retry count.
+- Avoid duplicate message delivery.
+- Record retry attempts.
+- Identify permanent failures.
+- Generate a final activity report.
+- Notify the administrator about incomplete operations.
+
+Output:
+- Delivery summary.
+- Retry history.
+- Failed message list.
+- Completed task status.
+- Final emergency report.
+
+AGENT 5: AI COORDINATOR
+
+Responsibilities:
+- Receive an emergency event.
+- Create an execution plan.
+- Assign tasks to the appropriate agents.
+- Coordinate their execution.
+- Pass results between agents.
+- Handle agent failures.
+- Decide whether additional verification is required.
+- Track overall progress.
+- Store the execution history.
+- Produce the final result.
+
+The coordinator must not simply call four functions and pretend they are independent agents. Implement actual agent roles, structured inputs and outputs, coordination and recorded task execution.
+
+# 4. AUTONOMOUS DECISION-MAKING
+
+The application must demonstrate meaningful autonomous decisions.
+
+Examples:
+
+- If coordinates are invalid, request correction instead of continuing.
+- If an incident report is incomplete, ask for missing information.
+- If a report appears duplicated, flag it for review.
+- If a person is outside the selected radius, exclude them.
+- If a notification fails temporarily, schedule a retry.
+- If a recipient has invalid information, flag that record.
+- If an AI agent fails, record the failure and execute an appropriate recovery path.
+- If an incident has not been verified, do not send real emergency SMS.
+
+Use human approval before actual external emergency notifications.
+
+Maintain an audit trail explaining why each decision was made.
+
+# 5. LIVE RESEARCH AND TOOL INTEGRATION
+
+Implement real tool usage.
+
+The application should support:
+
+1. Geocoding:
+   Convert a location or address into geographical coordinates.
+
+2. Mapping:
+   Display the fire location, affected radius and registered recipients using Leaflet and OpenStreetMap.
+
+3. Live research:
+   Allow the research-capable agent to retrieve relevant, current fire safety information or official emergency guidance using a configured search API.
+
+4. Database tools:
+   Retrieve, insert and update records through secure database functions.
+
+5. SMS tools:
+   Connect to a configured SMS API or use the simulated messaging service.
+
+6. Report generation:
+   Generate an incident report using the completed workflow.
+
+Every tool call should have a recorded result, timestamp and error status.
+
+Never invent live research results or pretend a failed external integration succeeded.
+
+# 6. EVENT-BASED WORKFLOW
+
+Provide a button named:
+
+"REPORT FIRE EMERGENCY"
+
+When clicked:
+
+1. Create an incident record.
+2. Start a background workflow.
+3. Notify the AI coordinator.
+4. Assign work to Agent 1 and Agent 2.
+5. Validate and analyze the incident.
+6. Identify affected registered people.
+7. Prepare a notification plan.
+8. Request administrator approval before real SMS dispatch.
+9. Assign notification tasks to Agent 3.
+10. Assign monitoring tasks to Agent 4.
+11. Generate a final report.
+12. Display the complete execution history.
+
+The user must be able to leave the page and return later to check workflow progress.
+
+Store background job state persistently so that restarting the web server does not silently erase the task history.
+
+# 7. GEOGRAPHICAL RADIUS SYSTEM
+
+Implement the Haversine formula for accurate geographical distance calculations.
+
+Allow administrators to choose:
+- 500 metres.
+- 1 kilometre.
+- 2 kilometres.
+- 5 kilometres.
+- Custom radius.
+
+Example:
+
+Fire location: 12.9716, 77.5946
+
+Registered people:
+
+Person A: 200 metres.
+Person B: 450 metres.
+Person C: 800 metres.
+Person D: 1.2 kilometres.
+Person E: 2 kilometres.
+
+If the administrator selects a 1-kilometre radius:
+
+- Select Person A.
+- Select Person B.
+- Select Person C.
+- Exclude Person D.
+- Exclude Person E.
+
+Use these only as illustrative sample distances. Calculate actual distances from coordinates in the application.
+
+Display the affected area as a circle on the interactive map.
+
+# 8. WEBSITE MODULES
+
+Create the following complete website pages:
+
+1. Admin Login.
+2. Main Dashboard.
+3. User Registration.
+4. Registered People Management.
+5. Interactive Location Map.
+6. Fire Incident Reporting.
+7. AI Agent Control Center.
+8. Emergency Notification Management.
+9. SMS Delivery Tracking.
+10. Alert History.
+11. Background Task Monitoring.
+12. Final Incident Reports.
+13. System Settings.
+
+Dashboard statistics should include:
+
+- Total registered people.
+- Total incidents.
+- Active emergency workflows.
+- People within affected radius.
+- Notifications generated.
+- Successful notifications.
+- Failed notifications.
+- Agent execution status.
+
+# 9. DATABASE DESIGN
+
+Create the following MySQL tables:
+
+1. admin_users
+2. registered_users
+3. fire_incidents
+4. agent_tasks
+5. agent_execution_logs
+6. notification_logs
+7. notification_retries
+8. emergency_reports
+9. system_settings
+10. audit_logs
+
+Include:
+- Primary keys.
+- Foreign keys.
+- Appropriate indexes.
+- Created and updated timestamps.
+- Data validation.
+- Duplicate prevention.
+- Secure password hashing.
+
+Store only necessary personal information. Obtain and record appropriate consent for notifications.
+
+# 10. SMS NOTIFICATION SYSTEM
+
+Implement two modes.
+
+MODE A: SIMULATED SMS
+
+- No physical hardware.
+- No real SMS charges.
+- Generate realistic message records.
+- Display simulated delivery status.
+- Store notification history.
+- Allow judges to demonstrate the complete workflow.
+
+MODE B: REAL SMS
+
+- Integrate an external SMS gateway.
+- Read credentials from environment variables.
+- Validate recipient numbers.
+- Use authorized messaging routes and applicable Indian SMS requirements.
+- Handle provider failures.
+- Record provider response.
+- Never expose API credentials.
+
+Clearly distinguish simulated messages from actual provider-confirmed delivery.
+
+Do not automatically send real emergency messages without administrator confirmation.
+
+# 11. BACKGROUND EXECUTION
+
+Implement background jobs for:
+
+- Incident analysis.
+- Location analysis.
+- Notification dispatch.
+- Delivery monitoring.
+- Retry management.
+- Report generation.
+
+The dashboard must display:
+- Pending.
+- Running.
+- Completed.
+- Failed.
+- Retrying.
+
+Show agent activity in chronological order.
+
+# 12. USER INTERFACE DESIGN
+
+Create a modern professional emergency management dashboard.
+
+Design requirements:
+- Dark navy background.
+- Emergency red highlights.
+- White and light-grey content areas.
+- Professional typography.
+- Responsive layout.
+- Modern icons.
+- Interactive maps.
+- Live workflow progress.
+- Agent activity timeline.
+- Notification status indicators.
+- Clean tables and charts.
+
+The dashboard must look like a professional emergency operations platform, not a basic college CRUD application.
+
+# 13. SECURITY AND RELIABILITY
+
+Implement:
+
+- Admin authentication.
+- Password hashing.
+- Input validation.
+- SQL injection protection.
+- Secure environment variables.
+- API error handling.
+- Duplicate notification prevention.
+- Audit logging.
+- Consent management.
+- Rate limiting for sensitive operations.
+- Human approval for real SMS.
+- Retry limits.
+- Background task recovery.
+
+The application must clearly state that it is a prototype and not a certified emergency response or life-safety system.
+
+Do not automatically contact public emergency services or broadcast messages to unregistered mobile phones.
+
+# 14. PROJECT FOLDER STRUCTURE
+
+Create an organized project:
+
+QuickFireAI/
+│
+├── app.py
+├── config.py
+├── requirements.txt
+├── .env.example
+├── README.md
+│
+├── agents/
+│   ├── coordinator.py
+│   ├── incident_agent.py
+│   ├── location_agent.py
+│   ├── communication_agent.py
+│   └── monitoring_agent.py
+│
+├── services/
+│   ├── database.py
+│   ├── geolocation.py
+│   ├── sms_service.py
+│   ├── research_service.py
+│   └── report_service.py
+│
+├── workers/
+│   ├── worker.py
+│   └── job_queue.py
+│
+├── models/
+│   ├── user.py
+│   ├── incident.py
+│   └── notification.py
+│
+├── routes/
+│   ├── auth.py
+│   ├── dashboard.py
+│   ├── users.py
+│   ├── incidents.py
+│   ├── agents.py
+│   └── reports.py
+│
+├── templates/
+│   ├── base.html
+│   ├── login.html
+│   ├── dashboard.html
+│   ├── users.html
+│   ├── map.html
+│   ├── fire_alert.html
+│   ├── agents.html
+│   ├── notifications.html
+│   └── reports.html
+│
+├── static/
+│   ├── css/
+│   ├── js/
+│   └── images/
+│
+├── database/
+│   ├── schema.sql
+│   └── sample_data.sql
+│
+└── tests/
+    ├── test_agents.py
+    ├── test_radius.py
+    ├── test_notifications.py
+    └── test_workflow.py
+
+You may improve this structure if required, but maintain clear separation of responsibilities.
+
+# 15. TESTING REQUIREMENTS
+
+Write and execute tests for:
+
+1. Admin login.
+2. New user registration.
+3. Database insertion.
+4. Invalid coordinate detection.
+5. Haversine distance calculation.
+6. Radius filtering.
+7. Incident validation.
+8. Agent communication.
+9. Agent failure recovery.
+10. Background job persistence.
+11. Simulated SMS generation.
+12. Duplicate notification prevention.
+13. Notification retries.
+14. Report generation.
+15. Complete end-to-end workflow.
+
+Create sample records so that judges can test the application immediately.
+
+The demo must work without any external paid API credentials by using clearly labelled mock or simulation integrations.
+
+Where an external service is unavailable, show an honest degraded status rather than pretending the integration succeeded.
+
+# 16. HACKATHON DEMONSTRATION
+
+Prepare a complete demonstration scenario.
+
+Scenario:
+
+A fire is reported at a college campus.
+
+The administrator selects:
+- Incident location: Sample campus coordinates.
+- Radius: 1 kilometre.
+- Incident severity: High.
+
+Expected demonstration:
+
+1. Fire incident is submitted.
+2. AI coordinator starts the workflow.
+3. Incident Analysis Agent validates the report.
+4. Location Intelligence Agent identifies affected people.
+5. The map displays the affected radius.
+6. Emergency Communication Agent generates notifications.
+7. Administrator approves simulated dispatch.
+8. Simulated SMS notifications are generated.
+9. Monitoring Agent checks the notification records.
+10. A failed notification is retried in the test scenario.
+11. The final report displays the completed workflow.
+
+Show all agents working, their inputs, outputs, decisions, tool calls and timestamps.
+
+Provide a demonstration mode with predictable sample data and deterministic test outcomes.
+
+# 17. HACKATHON JUDGING ALIGNMENT
+
+Explicitly address all six judging categories:
+
+A. Autonomous Execution – 25%
+Show actual autonomous planning, decisions, execution, error handling and retries.
+
+B. Problem Relevance and Usefulness – 20%
+Demonstrate the real-world value of geographical fire emergency notifications.
+
+C. Multi-Agent Workflow – 20%
+Show at least four distinct agents collaborating through a coordinator.
+
+D. Tools and Integrations – 15%
+Demonstrate database access, mapping, live research and SMS integration or clearly labelled simulation.
+
+E. Demo Quality – 10%
+Provide a smooth end-to-end demonstration with visible agent activity and completed results.
+
+F. Architecture and Engineering – 10%
+Use modular architecture, structured data, tests, secure configuration and documentation.
+
+Do not claim a capability is complete unless it is implemented and tested.
+
+# 18. GITHUB SUBMISSION REQUIREMENTS
+
+Follow these exact rules from the hackathon document:
+
+1. Create a public GitHub repository.
+2. Repository name must be the team name.
+3. The first commit must have exactly this message:
+
+Initial Commit
+
+4. Commit and push progress regularly.
+5. The final commit must have exactly this message:
+
+Final Submission
+
+6. Submit the repository link before the deadline.
+7. Do not modify code after the submission deadline.
+8. Do not manipulate commit history.
+
+Include a README containing:
+- Project description.
+- Technology stack.
+- Architecture diagram.
+- Agent responsibilities.
+- Installation instructions.
+- Environment configuration.
+- Database setup.
+- How to run the application.
+- How to run the background worker.
+- How to execute tests.
+- Demo instructions.
+- API integration requirements.
+- Known limitations.
+
+# 19. DEVELOPMENT INSTRUCTIONS
+
+Follow this development approach carefully.
+
+STAGE 1:
+Create the project structure, Flask application, configuration and database.
+
+STAGE 2:
+Develop the frontend dashboard and registration modules.
+
+STAGE 3:
+Implement geographical calculations and interactive mapping.
+
+STAGE 4:
+Develop the five-agent architecture and coordination workflow.
+
+STAGE 5:
+Implement real tool integrations and live research.
+
+STAGE 6:
+Implement background jobs, monitoring, retries and notification services.
+
+STAGE 7:
+Implement security and error handling.
+
+STAGE 8:
+Run all tests and fix errors.
+
+STAGE 9:
+Prepare the complete demonstration and GitHub README.
+
+For every stage:
+
+- Explain what is being developed.
+- Provide complete source code.
+- Give exact filenames.
+- Provide installation commands.
+- Explain how to execute the code on Windows.
+- Test the functionality before moving to the next stage.
+- Do not leave incomplete functions or TODO placeholders in core functionality.
+- Do not provide imaginary outputs.
+- Do not skip configuration files.
+- Do not silently omit any required feature.
+
+If the full project is too large for one response, build it in stages and maintain continuity.
+
+Do not generate only a prototype screenshot or static UI. The application must have functional backend logic and database integration.
+
+# 20. FINAL ACCEPTANCE CRITERIA
+
+The project is considered ready only when:
+
+- The website runs successfully on Windows.
+- The administrator can log in.
+- Users can be registered.
+- User information is stored in the database.
+- Fire incidents can be created.
+- The radius calculation works correctly.
+- The map displays the affected area.
+- At least four specialized agents actually collaborate.
+- The coordinator assigns and tracks their tasks.
+- Live research integration is implemented and its availability is reported honestly.
+- Background tasks continue independently of the dashboard page.
+- Failed tasks can be retried.
+- Simulated SMS works without hardware or paid APIs.
+- Real SMS integration is available when properly configured.
+- Notification logs are stored.
+- A complete incident report is generated.
+- Automated tests pass.
+- A judge can reproduce the demonstration using the README.
+
+**FINAL INSTRUCTION:**
+
+Start with Stage 1.
+
+First explain the overall architecture, then create the complete project folder structure and provide all Stage 1 files with runnable code and Windows setup commands.
+
+Prioritize a small, fully working end-to-end application over a large application with incomplete features.
+
+The final objective is to deliver a genuine, functional, multi-agent autonomous fire emergency coordination system that addresses every capability and evaluation criterion in the supplied hackathon problem statement.

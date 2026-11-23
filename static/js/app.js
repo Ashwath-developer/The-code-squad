@@ -1,0 +1,1 @@
+window.refreshIncident = async function(id){const res=await fetch(`/api/incidents/${id}`);if(!res.ok)return;location.reload()}
