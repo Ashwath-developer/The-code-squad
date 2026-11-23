@@ -34,8 +34,10 @@ def seed_database():
     with db.connection() as conn:
         count = conn.execute("SELECT COUNT(*) FROM admin_users").fetchone()[0]
         if count == 0:
+            admin_email = os.getenv("ADMIN_EMAIL") or "admin@quickfire.local"
+            admin_password = os.getenv("ADMIN_PASSWORD") or "Admin@123"
             conn.execute("INSERT INTO admin_users(name,email,password_hash) VALUES(?,?,?)",
-                         ("System Administrator", "admin@quickfire.local", generate_password_hash("Admin@123")))
+                         ("System Administrator", admin_email, generate_password_hash(admin_password)))
         user_count = conn.execute("SELECT COUNT(*) FROM registered_users").fetchone()[0]
         if user_count == 0:
             with open(sample_path, "r", encoding="utf-8") as f:

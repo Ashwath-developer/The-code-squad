@@ -46,6 +46,14 @@ Demo login:
 - Email: `admin@quickfire.local`
 - Password: `Admin@123`
 
+## Deploy from GitHub with Render
+
+1. Commit and push this repository to GitHub.
+2. In Render, choose **New → Blueprint**, connect the GitHub repository, and deploy its `render.yaml`.
+3. After the first deploy, open the service's **Environment** settings to retrieve the generated `ADMIN_PASSWORD`. Sign in with that password and the configured `ADMIN_EMAIL`.
+
+The included free Render service uses temporary storage for SQLite, so database changes can be lost when the service restarts or redeploys. Use a paid Render instance with a persistent disk before relying on saved incidents or recipient data. SMS remains in simulation mode by default.
+
 ## Background worker
 
 The application also supports synchronous desktop demonstration execution. To run the persistent SQLite worker separately:
